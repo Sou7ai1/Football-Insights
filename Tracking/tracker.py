@@ -85,7 +85,15 @@ class Tracker:
 
             for track_id, player in player_dictio.items():
                 frame = self.draw_ellipse(
-                    frame, player["box_detect"], (0, 255, 0), track_id)
+                    frame, player["box_detect"], (255, 0, 0), track_id)
+
+            for track_id, ball in ball_dictio.items():
+                frame = self.draw_ellipse(
+                    frame, ball["box_detect"], (0, 0, 255), track_id)
+
+            for track_id, ref in ref_dictio.items():
+                frame = self.draw_ellipse(
+                    frame, ref["box_detect"], (255, 255, 255), track_id)
 
             output_frames.append(frame)
         return output_frames
@@ -96,5 +104,5 @@ class Tracker:
         width = get_bbox_width(bbox)
 
         cv2.ellipse(frame, center=(center_x, y2), axes=(int(width), int(0.35 * width)), angle=0.0,
-                    startAngle=-45, endAngle=235, color=(255, 0, 0), thickness=2, lineType=cv2.LINE_4)  # Provide the minor and major axes of the ellipse
+                    startAngle=-45, endAngle=235, color=color, thickness=3, lineType=cv2.LINE_4)  # Provide the minor and major axes of the ellipse
         return frame
