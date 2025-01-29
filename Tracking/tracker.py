@@ -2,6 +2,7 @@ from utils import get_bbox_width, get_center_box
 from ultralytics import YOLO  # type: ignore
 import supervision as sv  # type: ignore
 import os
+import numpy as np
 import pickle
 import cv2  # type: ignore
 import sys
@@ -18,7 +19,7 @@ class Tracker:
         results = []
         for i in range(0, len(frames), n_frames):
             detections_n_frames = self.model.predict(
-                frames[i:i+n_frames], conf=0.1)
+                frames[i:i+n_frames], conf=0.1, verbose=False)  # Disabling verbose mode
             results += detections_n_frames
         return results
 
@@ -88,8 +89,8 @@ class Tracker:
                     frame, player["box_detect"], (255, 0, 0), track_id)
 
             for track_id, ball in ball_dictio.items():
-                frame = self.draw_ellipse(
-                    frame, ball["box_detect"], (0, 0, 255), track_id)
+                frame = self.draw_triangle(
+                    frame, ball["box_detect"], (0, 255, 0))
 
             for track_id, ref in ref_dictio.items():
                 frame = self.draw_ellipse(
@@ -104,5 +105,20 @@ class Tracker:
         width = get_bbox_width(bbox)
 
         cv2.ellipse(frame, center=(center_x, y2), axes=(int(width), int(0.35 * width)), angle=0.0,
-                    startAngle=-45, endAngle=235, color=color, thickness=3, lineType=cv2.LINE_4)  # Provide the minor and major axes of the ellipse
+                    startAngle=-45, endAngle=235, color=color, thickness=2, lineType=cv2.LINE_4)  # Provide the minor and major axes of the ellipse
+        return frame
+
+    def draw_triangle(self, frame, bbox, color):
+        y = int(bbox[1])
+        x = get_center_box(bbox)
+
+        triangle = np.array([
+            [x, y],
+            [x-10, y-20],
+            [x+10, y-20],
+        ])  # Coordinates of the contours of the triangle
+
+        cv2.drawContours(frame, [triangle], 0, color, cv2.FILLED)
+        cv2.drawContours(frame, [triangle], 0, (0, 0, 0), 2)
+
         return frame
