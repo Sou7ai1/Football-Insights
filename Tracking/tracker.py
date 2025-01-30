@@ -106,6 +106,23 @@ class Tracker:
 
         cv2.ellipse(frame, center=(center_x, y2), axes=(int(width), int(0.35 * width)), angle=0.0,
                     startAngle=-45, endAngle=235, color=color, thickness=2, lineType=cv2.LINE_4)  # Provide the minor and major axes of the ellipse
+
+        rectangle_width = 40
+        rectangle_height = 40
+        x1_rectangle = center_x-rectangle_width//2
+        x2_rectangle = center_x+rectangle_width//2
+        y1_rectangle = y2-rectangle_height//2 + 15
+        y2_rectangle = y2-rectangle_height//2 + 15
+
+        if track_id is not None:
+            cv2.rectangle(frame, (int(x1_rectangle), int(y1_rectangle)),
+                          (int(x2_rectangle), int(y2_rectangle)), color, cv2.FILLED)
+            x1_text = x1_rectangle+12
+            if track_id > 99:
+                x1_text -= 10
+
+        cv2.putText(frame, f"{track_id}", (int(x1_text), int(y1_rectangle+30)),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
         return frame
 
     def draw_triangle(self, frame, bbox, color):
@@ -120,5 +137,4 @@ class Tracker:
 
         cv2.drawContours(frame, [triangle], 0, color, cv2.FILLED)
         cv2.drawContours(frame, [triangle], 0, (0, 0, 0), 2)
-
         return frame
