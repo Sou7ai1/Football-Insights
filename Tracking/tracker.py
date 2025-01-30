@@ -108,21 +108,28 @@ class Tracker:
                     startAngle=-45, endAngle=235, color=color, thickness=2, lineType=cv2.LINE_4)  # Provide the minor and major axes of the ellipse
 
         rectangle_width = 40
-        rectangle_height = 40
-        x1_rectangle = center_x-rectangle_width//2
-        x2_rectangle = center_x+rectangle_width//2
-        y1_rectangle = y2-rectangle_height//2 + 15
-        y2_rectangle = y2-rectangle_height//2 + 15
+        rectangle_height = 10
+        x1_rectangle = center_x - rectangle_width // 2
+        x2_rectangle = center_x + rectangle_width // 2
+        y1_rectangle = (y2 - rectangle_height // 2) + 15
+        y2_rectangle = (y2 + rectangle_height // 2) + 15
 
         if track_id is not None:
-            cv2.rectangle(frame, (int(x1_rectangle), int(y1_rectangle)),
-                          (int(x2_rectangle), int(y2_rectangle)), color, cv2.FILLED)
-            x1_text = x1_rectangle+12
-            if track_id > 99:
-                x1_text -= 10
+            cv2.rectangle(frame, (int(x1_rectangle), int(y1_rectangle + 30)),
+                          (int(x2_rectangle), int(y2_rectangle)), (255, 255, 255), cv2.FILLED)
 
-        cv2.putText(frame, f"{track_id}", (int(x1_text), int(y1_rectangle+30)),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
+            text = f"{track_id}"
+            font = cv2.FONT_HERSHEY_COMPLEX_SMALL
+            font_scale = 0.6
+            thickness = 2
+            text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
+
+            x1_text = x1_rectangle + (rectangle_width - text_size[0]) // 2
+            y1_text = y1_rectangle + 30 + \
+                (rectangle_height + text_size[1]) // 2
+
+            cv2.putText(frame, text, (int(x1_text+5), int(y1_text-5)),
+                        font, font_scale, (0, 0, 0), thickness)
         return frame
 
     def draw_triangle(self, frame, bbox, color):
