@@ -30,16 +30,25 @@ class TeamAssigner:
         return player_color
 
     def get_team_player(self, frame, player_bbox, player_id):
-
         if player_id in self.team_player:
-            return self.team_player[player_id]
+            return self.team_player[player_id]["team"]
 
         player_color = self.get_player_color(frame, player_bbox)
 
-        team_id = self.kmeans.predict(player_color.reshape(1, -1))[0]
-        team_id += 1
+        # Validate player_color
+        if np.isnan(player_color).any() or np.all(player_color == 0):
+            # Assign a default team (e.g., team 1) if the color is invalid
+            team_id = 1
+        else:
+            # Predict the team using the KMeans model
+            team_id = self.kmeans.predict(player_color.reshape(1, -1))[0]
+            team_id += 1  # Teams are 1 and 2
 
-        self.team_player[player_id] = team_id
+        # Store the team assignment and player color
+        self.team_player[player_id] = {
+            "team": team_id,
+            "color": player_color
+        }
 
         return team_id
 
