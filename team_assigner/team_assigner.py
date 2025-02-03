@@ -9,7 +9,8 @@ class TeamAssigner:
 
     def get_cluster_model(self, image):
         image2 = image.reshape(-1, 3)
-        kmeans = KMeans(n_clusters=2, init="k-means++", n_init=1).fit(image2)
+        kmeans = KMeans(n_clusters=2, init="k-means++", n_init=1)
+        kmeans = kmeans.fit(image2)
         return kmeans
 
     def get_player_color(self, frame, bbox):
@@ -26,13 +27,14 @@ class TeamAssigner:
         player_cluster = 1-non_player_cluster
 
         player_color = kmeans.cluster_centers_[player_cluster]
+        return player_color
 
-    def get_team_player(self, frame, player, bbox, player_id):
+    def get_team_player(self, frame, player_bbox, player_id):
 
         if player_id in self.team_player:
             return self.team_player[player_id]
 
-        player_color = self.get_player_color(frame, bbox)
+        player_color = self.get_player_color(frame, player_bbox)
 
         team_id = self.kmeans.predict(player_color.reshape(1, -1))[0]
         team_id += 1
@@ -49,7 +51,8 @@ class TeamAssigner:
             player_colors.append(player_color)
 
         kmeans = KMeans(n_clusters=2, init="k-means++",
-                        n_init=1).fit(player_colors)
+                        n_init=10)
+        kmeans = kmeans.fit(player_colors)
 
         self.kmeans = kmeans
         self.team_colors[1] = kmeans.cluster_centers_[0]
