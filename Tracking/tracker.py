@@ -85,8 +85,9 @@ class Tracker:
             ref_dictio = tracks["referees"][frame_N]
 
             for track_id, player in player_dictio.items():
+                color = player.get("team_color", (0, 0, 255))
                 frame = self.draw_ellipse(
-                    frame, player["box_detect"], (255, 0, 0), track_id)
+                    frame, player["box_detect"], color, track_id)
 
             for track_id, ball in ball_dictio.items():
                 frame = self.draw_triangle(
