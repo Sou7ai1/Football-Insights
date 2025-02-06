@@ -3,6 +3,7 @@ from ultralytics import YOLO  # type: ignore
 import supervision as sv  # type: ignore
 import os
 import numpy as np
+import pandas as pd
 import pickle
 import cv2  # type: ignore
 import sys
@@ -141,8 +142,20 @@ class Tracker:
             [x, y],
             [x-10, y-20],
             [x+10, y-20],
-        ])  # Coordinates of the contours of the triangle
+        ])
 
         cv2.drawContours(frame, [triangle], 0, color, cv2.FILLED)
         cv2.drawContours(frame, [triangle], 0, (0, 0, 0), 2)
         return frame
+
+    def ball_interpol(self, ball_pos):
+        ball_pos = [x.get(1, {}).get('box_detect', []) for x in ball_pos]
+        df_ball_pos = pd.DataFrame(ball_pos, columns=['x1', 'y1', 'x2', 'y2'])
+
+        df_ball_pos = df_ball_pos.interpolate()
+        df_ball_pos = df_ball_pos.bfill()
+
+        ball_pos = [{1: {"box_detect": x}}
+                    for x in df_ball_pos.to_numpy().tolist()]
+
+        return ball_pos
