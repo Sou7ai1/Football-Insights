@@ -89,6 +89,9 @@ class Tracker:
                 color = player.get("team_color", (0, 0, 255))
                 frame = self.draw_ellipse(
                     frame, player["box_detect"], color, track_id)
+                if player.get("has_ball", False):
+                    frame = self.draw_triangle(
+                        frame, player["box_detect"], (0, 0, 255))
 
             for track_id, ball in ball_dictio.items():
                 frame = self.draw_triangle(
