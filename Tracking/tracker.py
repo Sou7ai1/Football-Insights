@@ -97,16 +97,16 @@ class Tracker:
                 frame = self.draw_triangle(
                     frame, ball["box_detect"], (0, 255, 0))
 
-            for track_id, ref in ref_dictio.items():
+            for _, ref in ref_dictio.items():
                 frame = self.draw_ellipse(
-                    frame, ref["box_detect"], (255, 255, 255), track_id)
+                    frame, ref["box_detect"], (255, 255, 255))
 
             output_frames.append(frame)
         return output_frames
 
-    def draw_ellipse(self, frame, bbox, color, track_id):
+    def draw_ellipse(self, frame, bbox, color, track_id=None):
         y2 = int(bbox[3])
-        center_x = get_center_box(bbox)
+        center_x, _ = get_center_box(bbox)
         width = get_bbox_width(bbox)
 
         cv2.ellipse(frame, center=(center_x, y2), axes=(int(width), int(0.35 * width)), angle=0.0,
@@ -139,7 +139,7 @@ class Tracker:
 
     def draw_triangle(self, frame, bbox, color):
         y = int(bbox[1])
-        x = get_center_box(bbox)
+        x,_ = get_center_box(bbox)
 
         triangle = np.array([
             [x, y],
@@ -153,12 +153,22 @@ class Tracker:
 
     def ball_interpol(self, ball_pos):
         ball_pos = [x.get(1, {}).get('box_detect', []) for x in ball_pos]
-        df_ball_pos = pd.DataFrame(ball_pos, columns=['x1', 'y1', 'x2', 'y2'])
 
-        df_ball_pos = df_ball_pos.interpolate()
-        df_ball_pos = df_ball_pos.bfill()
+        # Skip empty frames
+        valid_positions = [(i, pos) for i, pos in enumerate(ball_pos) if pos]
 
-        ball_pos = [{1: {"box_detect": x}}
-                    for x in df_ball_pos.to_numpy().tolist()]
+        if not valid_positions:
+            return ball_pos
 
-        return ball_pos
+        # Fill missing frames by interpolation if required
+        indices, positions = zip(*valid_positions)
+        df_ball_pos = pd.DataFrame(list(positions), columns=[
+            'x1', 'y1', 'x2', 'y2'], index=indices)
+
+        # Interpolate for all frames
+        df_ball_pos = df_ball_pos.reindex(range(len(ball_pos))).interpolate()
+        df_ball_pos = df_ball_pos.bfill()  # Fill remaining empty values
+
+        interpolated_positions = [{1: {"box_detect": row.tolist()}}
+                                  for _, row in df_ball_pos.iterrows()]
+        return interpolated_positions
