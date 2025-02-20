@@ -77,7 +77,7 @@ class Tracker:
 
         return track
 
-    def draw_annot(self, video_frame, tracks):
+    def draw_annot(self, video_frame, tracks, team_ball_control):
         output_frames = []
         for frame_N, frame in enumerate(video_frame):
             frame = frame.copy()
@@ -93,16 +93,40 @@ class Tracker:
                     frame = self.draw_triangle(
                         frame, player["box_detect"], (0, 0, 255))
 
+            for _, ref in ref_dictio.items():
+                frame = self.draw_ellipse(
+                    frame, ref["box_detect"], (0, 255, 255))
+
             for track_id, ball in ball_dictio.items():
                 frame = self.draw_triangle(
                     frame, ball["box_detect"], (0, 255, 0))
 
-            for _, ref in ref_dictio.items():
-                frame = self.draw_ellipse(
-                    frame, ref["box_detect"], (255, 255, 255))
+            frame = self.draw_team_ball_control(
+                frame, frame_N, team_ball_control)
 
             output_frames.append(frame)
         return output_frames
+
+    def draw_team_ball_control(self, frame, frame_N, team_ball_control):
+        overlay = frame.copy()
+        cv2.rectangle(overlay, (1350, 850), (1900, 950),
+                      (255, 255, 255), cv2.FILLED)
+        alpha = 0.4  # for transparency
+        cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
+
+        team_ball_control_frame = team_ball_control[:frame_N+1]
+        team_A_frames = team_ball_control_frame[team_ball_control_frame == 1].shape[0]
+        team_B_frames = team_ball_control_frame[team_ball_control_frame == 2].shape[0]
+
+        team_A = team_A_frames/(team_A_frames+team_B_frames)
+        team_B = team_B_frames/(team_A_frames+team_B_frames)
+
+        cv2.putText(frame, f"Team A Ball Control: {team_A*100:.2f}%",
+                    (1400, 900), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 3)
+        cv2.putText(frame, f"Team B Ball Control: {team_B*100:.2f}%",
+                    (1400, 950), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 3)
+
+        return frame
 
     def draw_ellipse(self, frame, bbox, color, track_id=None):
         y2 = int(bbox[3])
@@ -139,7 +163,7 @@ class Tracker:
 
     def draw_triangle(self, frame, bbox, color):
         y = int(bbox[1])
-        x,_ = get_center_box(bbox)
+        x, _ = get_center_box(bbox)
 
         triangle = np.array([
             [x, y],

@@ -9,29 +9,12 @@ class BallAssigner:
 
     def assign_ball(self, players, ball_box):
         ball_pos = get_center_box(ball_box)
-        print(f"Ball position: {ball_pos}")  # Debugging: Check ball position
 
-        min_distance = 99999999
+        min_distance = 9999
         assigned_player = -1
 
         for player_id, player in players.items():
             player_pos = player['box_detect']
-
-            # Debugging: Check the type of player_pos
-            if not isinstance(player_pos, (list, tuple)):
-                print(
-                    f"Warning: player_pos for player {player_id} is not a list or tuple: {player_pos}")
-                continue
-
-            # Debugging: Check the length of player_pos
-            if len(player_pos) < 4:
-                print(
-                    f"Warning: player_pos for player {player_id} has insufficient elements: {player_pos}")
-                continue
-
-            # Debugging: Print player_pos and ball_pos
-            print(
-                f"Player {player_id} position: {player_pos}, Ball position: {ball_pos}")
 
             l_distance = measure_distance(
                 (player_pos[0], player_pos[-1]), ball_pos)
