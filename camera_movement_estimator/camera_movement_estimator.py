@@ -1,10 +1,17 @@
+from utils import measure_xy_distance, measure_distance
+from utils import measure_distance
 import pickle
 import cv2  # type: ignore
 import numpy as np
+import sys
+import os
+sys.path.append('..')
 
 
 class CameraMovementestimator():
     def __init__(self, frame):
+
+        self.min_distance = 5
 
         self.lk_params = dict(
             winSize=(15, 15),
@@ -27,6 +34,10 @@ class CameraMovementestimator():
 
     def get_camera_movement(self, frames, read_from=False, stub_path=None):
 
+        if read_from and stub_path is not None and os.path.exists(stub_path): 
+            with open(read_from, 'rb') as f:
+                return pickle.load(f)
+        
         camera_movement = [[0, 0]*len(frames)]
         old_color = cv2.cvtColor(frames[0], cv2.COLOR_BGR2GRAY)
         old_features = cv2.goodFeaturesToTrack(old_color, **self.features)
@@ -40,3 +51,22 @@ class CameraMovementestimator():
             for i, (new, old) in enumerate(new_features, old_features):
                 new_features_p = new.ravel()
                 old_features_p = old.ravel()
+                distance = measure_distance(new_features_p, old_features_p)
+                if distance > max_dis:
+                    max_dis = distance
+                    camera_movement_x, camera_movement_y = measure_xy_distance(
+                        old_features_p, new_features_p)
+                    
+            if max_dis < self.min_distance:
+                camera_movement[frame_N] = [
+                    camera_movement_x, camera_movement_y]
+                old_features = cv2.goodFeaturesToTrack(
+                    frame_gray, **self.features)
+                
+            old_color = frame_gray.copy()
+        
+        if stub_path:
+            with open(stub_path, 'wb') as f:
+                pickle.dump(camera_movement)
+            
+        return camera_movement
