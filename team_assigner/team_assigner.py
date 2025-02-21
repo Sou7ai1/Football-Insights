@@ -48,20 +48,15 @@ class TeamAssigner:
 
     def get_team_player(self, frame, player_bbox, player_id):
         if player_id in self.team_player:
-            return self.team_player[player_id]["team"]
+            return self.team_player[player_id]
 
         player_color = self.get_player_color(frame, player_bbox)
-        if not np.isfinite(player_color).all() or np.linalg.norm(player_color) == 0:
+        team_id = self.kmeans.predict(player_color.reshape(1, -1))[0]
+        team_id += 1
+        if player_id == 91:
             team_id = 1
-        else:
-            team_id = self.kmeans.predict(player_color.reshape(1, -1))[0] + 1
 
-        # Cache player data
-        self.team_player[player_id] = {
-            "team": team_id,
-            "color": player_color
-        }
-
+        self.team_player[player_id] = team_id
         return team_id
 
     def assign_color(self, frame, player_detect):

@@ -122,9 +122,9 @@ class Tracker:
         team_B = team_B_frames/(team_A_frames+team_B_frames)
 
         cv2.putText(frame, f"Team A Ball Control: {team_A*100:.2f}%",
-                    (1400, 900), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 3)
+                    (1400, 890), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 3)
         cv2.putText(frame, f"Team B Ball Control: {team_B*100:.2f}%",
-                    (1400, 950), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 3)
+                    (1400, 945), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 3)
 
         return frame
 
