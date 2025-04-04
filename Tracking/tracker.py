@@ -175,24 +175,15 @@ class Tracker:
         cv2.drawContours(frame, [triangle], 0, (0, 0, 0), 2)
         return frame
 
-    def ball_interpol(self, ball_pos):
-        ball_pos = [x.get(1, {}).get('box_detect', []) for x in ball_pos]
+    def ball_interpol(self, ball_positions):
+        ball_positions = [x.get(1, {}).get('box_detect', []) for x in ball_positions]
+        df_ball_positions = pd.DataFrame(
+            ball_positions, columns=['x1', 'y1', 'x2', 'y2'])
 
-        # Skip empty frames
-        valid_positions = [(i, pos) for i, pos in enumerate(ball_pos) if pos]
+        df_ball_positions = df_ball_positions.interpolate()
+        df_ball_positions = df_ball_positions.bfill()
 
-        if not valid_positions:
-            return ball_pos
+        ball_positions = [{1: {"box_detect": x}}
+                          for x in df_ball_positions.to_numpy().tolist()]
 
-        # Fill missing frames by interpolation if required
-        indices, positions = zip(*valid_positions)
-        df_ball_pos = pd.DataFrame(list(positions), columns=[
-            'x1', 'y1', 'x2', 'y2'], index=indices)
-
-        # Interpolate for all frames
-        df_ball_pos = df_ball_pos.reindex(range(len(ball_pos))).interpolate()
-        df_ball_pos = df_ball_pos.bfill()  # Fill remaining empty values
-
-        interpolated_positions = [{1: {"box_detect": row.tolist()}}
-                                  for _, row in df_ball_pos.iterrows()]
-        return interpolated_positions
+        return ball_positions
